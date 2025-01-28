@@ -85,13 +85,17 @@ done
 # Github
 Adding second repo:
 - create personal access token on Github
-- create aoc repo on github
+- create aoc repo on github -> adentofcode.git
 - add remote, use token as password when asked (gets saved somewhere in MacOs)
 ```
 git config http.postBuffer 524288000 # some side-band connection break otherwise
+
 git remote add gh https://marvlabs@github.com/marvlabs/adventofcode.git 
 git remote -v
-git pull gh main --allow-unrelated-histories
+
+# Necessary? should not on empty repo
+# git pull gh main --allow-unrelated-histories
+
 git ... add ... commit
 git push origin
 git push gh

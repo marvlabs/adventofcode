@@ -237,7 +237,7 @@ def find_logic_for_wire (gates, feeds_into, wire, depth=100) :
     in2 = gates[wire]['i2']
     logic_1 = in1 if in1[0] in 'xy' else f'[{in1}]{find_logic_for_wire(gates, feeds_into, in1, depth-1)}'
     logic_2 = in2 if in2[0] in 'xy' else f'[{in2}]{find_logic_for_wire(gates, feeds_into, in2, depth-1)}'
-    return f'( {logic_1}  {gates[wire]['f']}  {logic_2} )'
+    return f"( {logic_1}  {gates[wire]['f']}  {logic_2} )"
 
 
 def test_some_adds(gates, feeds_into, inital_checks, bits) :
