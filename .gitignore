@@ -1,0 +1,13 @@
+__pycache__
+*/input/*.txt
+*/input/*.input
+old
+*stat.json
+2023.stat
+*.secret
+2015/19-r.py
+2015/19-r2.py
+2015/19-r3.py
+2015/19-r4.py
+.DS_Store
+2024/div/
