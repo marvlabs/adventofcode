@@ -81,3 +81,17 @@ do
 unzip  -P $PPW  $f
 done
 ```
+
+# Github
+Adding second repo:
+- create personal access token on Github
+- create aoc repo on github
+- add remote, use token as password when asked (gets saved somewhere in MacOs)
+```
+git remote add gh https://marvlabs@github.com/marvlabs/adventofcode.git 
+git remote -v
+git pull gh main --allow-unrelated-histories
+git ... add ... commit
+git push origin
+git push gh
+```
