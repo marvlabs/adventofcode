@@ -53,7 +53,7 @@ def solve(aoc_input, part1=True, part2=True, attr=None) :
     light_grid = Grid.from_string(aoc_input)
     for _ in range(cycles) :
         light_grid = animate(light_grid)
-        print(light_grid)
+        #print(light_grid)
     p1_result = sum(light_grid.at_is(pos, '#') for pos in light_grid.all_pos())
 
     # Part 2: with stuck corners
@@ -62,7 +62,7 @@ def solve(aoc_input, part1=True, part2=True, attr=None) :
     for _ in range(cycles) :
         light_grid = animate(light_grid)
         set_corners(light_grid, '#')
-        print(light_grid)
+        #print(light_grid)
     p2_result = sum(light_grid.at_is(pos, '#') for pos in light_grid.all_pos())
 
     return p1_result, p2_result

@@ -4,15 +4,9 @@ Needs: puzzle.CONFIG dict'''
 ###
 import json
 import time
-import os
-
 import urllib.request
-# Either use certify (pip install certify, then use the explicit CA file context in the request (context=ssl.create_default_context(cafile=certifi.where())))
-# or run: sudo "/Applications/Python 3.12/Install Certificates.command" to get the certificates
-# Since python does no longer use the root CAs from MacOS as default
-import certifi
-import ssl
 #import requests
+import os
 ###
 STATISTICS = {}
 
@@ -33,22 +27,22 @@ def run_tests(puzzle) :
     arg: the puzzle solving module to be used, eg. 2015_01
     needs: puzzle.TESTS dict
     prints: test results'''
-    print ('Tests:')
+    print ('Tests: ', end='')
     start_test = time.time()
 
     for test in puzzle.TESTS:
-        print ('   ', test['name'], ':', end='')
+        print ('  ', test['name'], ':', end='')
         p1, p2 = puzzle.solve(test['input'], part1=(test['p1'] != None), part2=(test['p2'] != None), attr=test['testattr'] if 'testattr' in test else None)
 
         for part in ('p1', 'p2') :
             if test[part] != None:
                 result = p1 if part == 'p1' else p2
                 if result == test[part] :
-                    print ('  ', part, 'ok', end='')
+                    print (' ', part, 'ok', end='')
                 else:
-                    print ('  ', part, 'FAIL: expected', test[part], 'but got', result)
+                    print (' ', part, 'FAIL: expected', test[part], 'but got', result)
                     exit(1)
-        print()
+    print()
 
     time_used = time.time() - start_test
     puzzle.CONFIG['testtime'] = time_used
@@ -64,8 +58,9 @@ def run_puzzle(puzzle) :
     p1, p2 = puzzle.solve(aoc_input)
     time_used = time.time() - start_solve
     puzzle.CONFIG['runtime'] = time_used
-    print ('   Part 1: ' + str(p1))
-    print ('   Part 2: ' + str(p2))
+    print (f'   Part 1: {p1}', f' -> NOT EQUAL to previous result {puzzle.CONFIG["result_p1"]}' if p1 != puzzle.CONFIG["result_p1"] else '')
+    print (f'   Part 2: {p2}', f' -> NOT EQUAL to previous result {puzzle.CONFIG["result_p2"]}' if p2 != puzzle.CONFIG["result_p2"] else '')
+    print (f'   Used  : {time_used:.3f}s')
     _store_statistics(puzzle.CONFIG)
 
 
@@ -110,17 +105,17 @@ def _get_aoc_session() :
 
 
 def _download_input(fname, year, day) :
-    '''Get the personalize input from AoC. Use session cookie from file or env'''
+    '''Get the personalized input from AoC. Use session cookie from file or env'''
     print (f'AOC input download: {fname} {year}/{day}')
     session = _get_aoc_session()
 
-    url = f'https://adventofcode.com/{year}/day/{day}/input'
+    url = f'https://adventofcode.com/{year}/day/{int(day)}/input'
     #url = f'http://localhost:1234/{year}/day/{day}/input'
     req = urllib.request.Request(url, headers={'Accept': '*/*', 'Accept-Encoding': '*', 'Cookie': f'session={session}'})
     # handler = urllib.request.HTTPSHandler(debuglevel=10)
     # opener = urllib.request.build_opener(handler)
     # input = opener.open(req).read().decode()
-    input = urllib.request.urlopen(req,  context=ssl.create_default_context(cafile=certifi.where())).read().decode()
+    input = urllib.request.urlopen(req).read().decode()
 
     # input = requests.get(url, cookies={'session': session}).content.decode()
     # print (input)
@@ -135,7 +130,7 @@ def print_statistics(year) :
     _load_statistics(year)
 
     runtime = worktime = 0
-    print ("Advent of Code 2023                               Tests [run time]  Puzzle [Difficulty, work time, run time]      lessons learned")
+    print ("Advent of Code 2015                               Tests [run time]  Puzzle [Difficulty, work time, run time]      lessons learned")
     print ("---------------------------------------------------------------------------------------------------------------------------------------")
     for day, stat in sorted(STATISTICS.items()) :
         runtime += int(stat['runtime'])
@@ -143,4 +138,4 @@ def print_statistics(year) :
         t = int(stat['t_used'])
         print(f"{year}-{stat['day']} {stat['name']:55s} {stat['testtime']:7.3f}s   {stat['difficulty']}  {t//60:d}:{t%60:02d}  {stat['runtime']:7.3f}s   {stat['learned']}")
     print ("---------------------------------------------------------------------------------------------------------------------------------------")
-    print (f"Advent of Code 2023 Total:   work {worktime//60}h{worktime%60}m,   runtime {runtime} seconds")
+    print (f"Advent of Code 2015 Total:   work {worktime//60}h{worktime%60}m,   runtime {runtime} seconds")
