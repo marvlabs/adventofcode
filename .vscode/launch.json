@@ -12,7 +12,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "python": "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
-            "cwd": "/Users/mb/dev/aoc/2015"
+            "cwd": "${fileDirname}"
         }
     ]
 }

@@ -5,9 +5,7 @@ old
 *stat.json
 2023.stat
 *.secret
-2015/19-r.py
-2015/19-r2.py
-2015/19-r3.py
-2015/19-r4.py
+2015/19-r*
 .DS_Store
 2024/div/
+2016/alt_*

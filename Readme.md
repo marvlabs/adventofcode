@@ -59,6 +59,14 @@ python 2024.py 01 02 03
 python 2024.py all stat
 ```
 
+## 2016 Python
+```
+export AOC=$HOME/dev/aoc
+cd $AOC/2016
+python 2016_01.py
+
+python 2016.py all stat
+```
 # Puzzles
 The AOC puzzle inputs are personalized and copyrighted: Don't publish them. That's why they're encrypted here.
 

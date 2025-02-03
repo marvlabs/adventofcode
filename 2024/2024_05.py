@@ -1,7 +1,5 @@
 #!python3
 '''AoC 2024 Day 05'''
-# from pprint import pprint as pp
-import re
 #############
 CONFIG = {
     'year'          :   '2024',
