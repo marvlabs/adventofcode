@@ -8,8 +8,8 @@ CONFIG = {
     'url'           :   'https://adventofcode.com/2016/day/09',
     'name'          :   "Explosives in Cyberspace - why use zip...",
     'difficulty'    :   'D2',
-    'learned'       :   'Recurse is always easiset (ohhhh boy)',
-    't_used'        :   '45',
+    'learned'       :   'RE methods',
+    't_used'        :   '40',
     'result_p1'     :   74532, 
     'result_p2'     :   11558231665,
 }
