@@ -6,7 +6,7 @@ CONFIG = {
     'year'          :   '2016',
     'day'           :   '05',
     'url'           :   'https://adventofcode.com/2016/day/05',
-    'name'          :   "How About a Nice Game of Chess?",
+    'name'          :   "How About a Nice Game of Chess? - pw rules be crazy",
     'difficulty'    :   'D2',
     'learned'       :   'MD5 in Python',
     't_used'        :   '20',

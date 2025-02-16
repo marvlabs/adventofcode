@@ -7,7 +7,7 @@ CONFIG = {
     'year'          :   '2016',
     'day'           :   '08',
     'url'           :   'https://adventofcode.com/2016/day/08',
-    'name'          :   "Day 8: Two-Factor Authentication - broken display",
+    'name'          :   "Two-Factor Authentication - broken display",
     'difficulty'    :   'D2',
     'learned'       :   'Grid class coming in handy',
     't_used'        :   '30',

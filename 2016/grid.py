@@ -81,6 +81,12 @@ class Grid:
     def neighbour_pos(self, pos):
         return { dir: step(pos, dir) for dir in _DIR8.keys() }
 
+    def valid_neighbours(self, pos, directions=_DIR8):
+        return [ (dir, step(pos, dir), self.get(step(pos, dir))) for dir in directions.keys() if self.valid(step(pos, dir)) ]
+
+    def valid_neighbours90(self, pos):
+        return self.valid_neighbours(pos, directions=_DIR4)
+
     def __str__(self):
         return '\n'.join(''.join(row) for row in self._rows ) 
         

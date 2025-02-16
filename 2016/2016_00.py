@@ -16,10 +16,10 @@ CONFIG = {
 #############
 TESTS = [
 {
-        'name'  : 'sometest',
-        'input' : '''To continue, please consult the code grid in the manual.  Enter the code at row 4, column 4.''',
-        'p1' : None,
-        'p2' : None,
+    'name'  : 'sometest',
+    'input' : '''To continue, please consult the code grid in the manual.  Enter the code at row 4, column 4.''',
+    'p1' : None,
+    'p2' : None,
 },
 ]
 
