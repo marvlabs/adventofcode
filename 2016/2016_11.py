@@ -3,16 +3,16 @@
 import re
 from itertools import combinations, chain
 from copy import deepcopy
-import heapq
+from heapq import heappush, heappop
 #############
 CONFIG = {
     'year'          :   '2016',
     'day'           :   '11',
     'url'           :   'https://adventofcode.com/2016/day/11',
     'name'          :   "Radioisotope Thermoelectric Generators - radiation risk",
-    'difficulty'    :   'D4',
-    'learned'       :   'NOT YET SOLVED TO SATISFACTION!',
-    't_used'        :   '180',
+    'difficulty'    :   'D3',
+    'learned'       :   'This took multiply tries for the perfect result',
+    't_used'        :   '240',
     'result_p1'     :   47, 
     'result_p2'     :   71,
 }
@@ -24,202 +24,140 @@ TESTS = [
 The second floor contains a hydrogen generator.
 The third floor contains a lithium generator.
 The fourth floor contains nothing relevant.''',
-    'p1' : None, # !!! 11,
+    'p1' : None,#11,
     'p2' : None,
 },
 ]
-
 #################
 
-# The counting solution:
-# Every item needs two steps to carry up one level, because:
-# - Two up, one down : REPEAT -> this ferries the items up: two items, four moves.
-# The last two don't use four, but only one: -> minus three
-# NEEDS TO BE REVISITED -> DOES NOT WORK for the test input
-def simple_counting_approach(floors):
-    moves = 0
-    to_move = 0
-    for floor in range(1,4) :
-        to_move += sum(map(len, floors[floor].values()))
-        moves += 2*to_move - 3
-    return moves
+# How much cumulated distance are all items from 4th floor -> 0 if all items are on the top floor
+distance = lambda locations : sum( 8-m[0]-m[1] for m in locations.values() )
+
+# A hash of a certain elevator position and item-on-floor distribution, used to check whether this situation has already been seen.
+# The big optimization here: sorting of the generator/chip pairs over all materials.
+# The theory being: it doesn't matter whether we have itemX/genX on floorA/floorB or itemY/genY on the same floorA/floorB
+# These are 'the same situations' from a solving point of view. We don't need to play through both these options as it's going to lead to the same result
+# This brings the nr of seen positions for p2 from 3E6 down to less than 8E3 (runtime 260s -> 0.7s)
+situation_key = lambda materials, e : (e, tuple( (m[0], m[1]) for m in sorted(materials.values())))
+
+# A* search: BFS optimized by prioritising the unvisited queue with current cost and 'distance' of all items from target position
+def a_star(materials) :
+    elevator = 1
+    counter = 0
+    seen = set()
+    unvisited = []
+    heappush(unvisited, (distance(materials), counter, 0, materials, elevator))
+    seen.add(situation_key(materials, elevator))
+
+    while len(unvisited) :
+        _, _, cost, situation, elevator = heappop(unvisited)
+
+        for next_situation, next_elevator in possible_situations(situation, elevator) :
+            sk = situation_key(next_situation, next_elevator)
+            if sk in seen : continue
+            seen.add(sk)
+
+            if distance(next_situation) == 0 :
+                # print (f"Found end position after {counter} checks. Seen {len(seen)}, unvisited {len(unvisited)}")
+                return cost+1 # Found end situation
+
+            counter += 1 # Acts as tie breaker in the heap
+            heappush(unvisited, (distance(next_situation)+cost+1, counter, cost+1, next_situation, next_elevator))
+
+    return None
 
 
+# From a current item-over-floor distribution and elevator position, get all valid next distributions after shuttling one or two items up or down according to the rules
+def possible_situations(situation, elevator) :
+    possible = []
+    gens_on_floor = [ 'g_'+material for material in situation if situation[material][0] == elevator ]
+    chips_on_floor = [ 'm_'+material for material in situation if situation[material][1] == elevator ]
+    # List of all one- and two-combinations of all items on this floor
+    combos = list(chain ( combinations(gens_on_floor + chips_on_floor, 2), [ ( item, None) for item in (gens_on_floor + chips_on_floor) ] ))
+
+    for e in [ elevator + 1, elevator - 1 ] :
+        if e < 1 or e > 4 : continue
+
+        # Check resulting distributions for all combos when brought up or down one level
+        for combo in combos:
+            if not combo_valid(combo) : continue
+            if combo[0] and combo[1] and e<elevator : continue # Optimized: don't bring down two items. Ever.
+            
+            new_situation = deepcopy(situation)
+            for c in combo :
+                if not c : continue
+                if c[0] == 'g' : 
+                    # move a generator to the new floor...
+                    new_situation[c[2:]][0] = e
+                else :
+                    # move a chip to the new floor...
+                    new_situation[c[2:]][1] = e
+            # ... and check whether this results in a valid distribution
+            if situation_valid(new_situation) :
+                possible.append((new_situation, e))
+
+    return possible
+
+
+# Is this distribution of items on the floors allowed?
+def situation_valid(situation) :
+    for m_check in situation.values():
+        if m_check[0] != m_check[1] :          
+            # This Chip and Generator are not on the same floor: No other Generator allowed on the floor of this Chip
+            for m_other in situation.values() :
+                if m_other[0] == m_check[1] :
+                    return False   # This generator is on the same floor as our unprotected chip
+    return True
+
+
+# Can this combination of 1 or 2 items go on an elevator?
+def combo_valid(combo) :
+    if (combo[0] == None) and (combo[1] == None) : return False  # Empty elevator not allowed
+    if (combo[0] == None)  ^  (combo[1] == None) : return True   # Only one item, ok
+    if combo[0][0] == combo[1][0]  : return True                 # Generator and Chip of the same material, ok
+    return combo[0][1:] == combo[1][1:]                          # Generator and Chip of differing material are not allowed
+
+##########################
 def solve(aoc_input, part1=True, part2=True, attr=None) :
-    p1_result = p2_result = 0
+    item_locations = {}
 
-    floors = { 
-        1: {'gen' : [], 'chip' : [] },
-        2: {'gen' : [], 'chip' : [] },
-        3: {'gen' : [], 'chip' : [] },
-        4: {'gen' : [], 'chip' : [] },
-    }
     floor = 0
     for line in aoc_input.splitlines() :
         floor += 1
         for generator in re.findall(r'(\w+) generator', line) :
-            floors[floor]['gen'].append(f'G-{generator}')
+            item_locations.setdefault(generator, [None,None])[0] = floor
         for chip in re.findall(r'(\w+)-compatible microchip', line) :
-            floors[floor]['chip'].append(f'M-{chip}')
-
-    # for floor in range(1,5) :
-    #     print (f'Floor {floor}: {floors[floor]["gen"]}, {floors[floor]["chip"]}')
-
-    # !!!The simulate solution - doesn't work so far
-    # p1_result = search_solution(floors)
+            item_locations.setdefault(chip, [None,None])[1] = floor
+    #print(sorted(materials.values())) # Can be used as seen key, can be used to compute distance
 
     # The counting solution: Works for my input, but NOT for the test input. REVISIT THIS!!!
-    p1_result = simple_counting_approach(floors)
+    #p1_result = simple_counting_approach2(materials)
+    #p2_result = simple_counting_approach2(materials)
 
-    floors[1]['gen'].extend(['G-elerium', 'G-dilithium'])
-    floors[1]['chip'].extend(['M-elerium', 'M-dilithium'])
-    p2_result = simple_counting_approach(floors)
+    # FINALLY: realised a search with good key and optimaziation to find a path through all possible moves
+    p1_result = a_star(item_locations)
+
+    item_locations['elerium'] = [1,1]
+    item_locations['dilithium'] = [1,1]
+    p2_result = a_star(item_locations)
 
     return p1_result, p2_result
 
-
 ##########################
-# WTF ... needs some more thinking
-
-floors_seen = set()
-
-def combo_valid(combo) :
-    if (combo[0] == None) and (combo[1] == None) : return False
-    if (combo[0] == None)  ^  (combo[1] == None) : return True
-    if combo[0][0] == combo[1][0]  : return True
-    return combo[0][1:] == combo[1][1:]
-
-def move_away_valid(floor, combo) :
-    chips = floor['chip'].copy()
-    gens = floor['gen'].copy()
-
-    for item in combo :
-        if item in chips : chips.remove(item)
-        if item in gens : gens.remove(item)
-
-    if len(gens) == 0 : return True
-
-    for item in chips :
-        name = item[2:]
-        if f'G-{name}' not in gens : 
-            return False
-
-    return True
-
-def move_to_valid(floor, combo) :
-    chips = floor['chip'].copy()
-    gens = floor['gen'].copy()
-
-    for item in combo :
-        if item == None : continue
-        if item[0] == 'G' : 
-            gens.append(item)
-        else : 
-            chips.append(item)
-
-    if len(gens) == 0 : return True
-
-    for item in chips :
-        name = item[2:]
-        if f'G-{name}' not in gens : 
-            return False
-
-    return True
-
-def move_not_seen_yet(floors, e, combo) :
-    new_floors = deepcopy(floors)
-
-    for item in combo :
-        if item == None : continue
-        if item[0] == 'G' : 
-            new_floors[e]['gen'].append(item)
-        else : 
-            new_floors[e]['chip'].append(item)
-
-    if floorkey(new_floors) in floors_seen :
-        return False
-    return True
-
-
-def do_move(floors, e, move) :
-    new_floors = deepcopy(floors)
-
-    new_elevator, combo = move
-
-    for item in combo :
-        if item == None : continue
-        if item[0] == 'G' : 
-            new_floors[e]['gen'].remove(item)
-            new_floors[new_elevator]['gen'].append(item)
-        else : 
-            new_floors[e]['chip'].remove(item)
-            new_floors[new_elevator]['chip'].append(item)
-
-    floors_seen.add(floorkey(new_floors))
-    return new_floors
-
-
-def possible_moves(floors, elevator) :
-    moves = []
-
-    for e in [ elevator + 1, elevator - 1 ] :
-        if e < 1 or e > 4 : continue
-        if len(floors[1]['gen'] + floors[1]['chip']) == 0 :
-            if e == 1 : continue
-            if len(floors[2]['gen'] + floors[2]['chip']) == 0 :
-                if e == 2 : continue
-
-
-        for combo in chain ( combinations(floors[elevator]['gen'] + floors[elevator]['chip'], 2), [ ( item, None) for item in (floors[elevator]['gen'] + floors[elevator]['chip']) ] ):
-            if not combo_valid(combo) : continue
-            if not move_away_valid(floors[elevator], combo) : continue
-            if not move_to_valid(floors[e], combo): continue
-            if not move_not_seen_yet(floors, e, combo) : continue
-            moves.append((e, combo))
-
+# The counting solution:
+# Every item needs two steps to carry up one level, because:
+# - Two up, one down : REPEAT -> this ferries the items up: two items, four moves.
+# The last two don't use four, but only one: -> minus three
+# This is an optimistic minimal result. If we need to shuffle around some rule infraction, this won't find it...
+# NEEDS TO BE REVISITED -> While it gives the correct result for my input, id DOES NOT WORK for the test input
+def simple_counting_approach(situation):
+    moves = 0
+    to_move = 0
+    for floor in range(1,4) :
+        to_move += sum(1 for m in situation.values() if m[0] == floor) + sum(1 for m in situation.values() if m[1] == floor)
+        moves += 2*to_move - 3
     return moves
-
-floorkey = lambda floors : '/'.join( [ f'{f}:' + '|'.join(sorted(floors[f]['gen']) + sorted(floors[f]['chip']))  for f in floors ] )
-floorval = lambda floors : sum( [ (4-f) * (len(floors[f]['gen']) + len(floors[f]['chip']))  for f in floors ] )
-
-def search_solution(floors):
-    elevator = 1
-    floors_seen.clear()
-    floors_seen.add(floorkey(floors))
-    init_cost = floorval(floors)
-
-    nr_of_moves = 0
-    to_visit = []
-    heapq.heappush (to_visit , (floorval(floors), 0, nr_of_moves, floors, elevator, [])) # floor, elevator, moves
-    #min_cost = init_cost
-
-    while len(to_visit) > 0 :
-        #to_visit = sorted(to_visit, key=lambda x : x[0], reverse=True)
-        x, y, z, f, e, moves_done  = heapq.heappop(to_visit)#.pop(0)
-        #if cost < min_cost : min_cost = cost
-        #if cost > min_cost + 3 : continue
-
-        moves = possible_moves(f, e)
-        if len(moves_done) > 50 : continue
-        #print (moves)
-
-        for move in moves :
-            nr_of_moves += 1
-            #if nr_of_moves % 111000 == 0 : breakpoint()
-            new_floors = do_move(f, e, move)
-            cost = len(moves_done)//2 +floorval(new_floors)
-            #if cost > min_cost + 3 : continue
-            heapq.heappush (to_visit, (cost, len(moves_done) + 1, nr_of_moves, new_floors, move[0], [move, *moves_done]))
-
-            if nr_of_moves % 10000 == 0 :
-                print(nr_of_moves, len(to_visit), cost, floorval(new_floors), len(moves_done))
-
-            if floorval(new_floors) == 0 :
-                p1_result = len(moves_done) + 1
-                print(move, moves_done)
-                to_visit.clear()
-                break
-    return p1_result
+##########################
 
 #############
 if __name__ == '__main__' :
