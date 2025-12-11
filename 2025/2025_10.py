@@ -10,7 +10,7 @@ CONFIG = {
     'year'          :   '2025',
     'day'           :   '10',
     'url'           :   'https://adventofcode.com/2025/day/10',
-    'name'          :   "Day 10: Factory",
+    'name'          :   "Day 10: Factory - random button hitting ALWAYS starts the machine",
     'difficulty'    :   'D3',
     'learned'       :   'LP: scipy optimize for linear programming',
     't_used'        :   '120',
@@ -53,6 +53,13 @@ def min_add_presses(buttons, joltages) :
 
     # This linprog module does magically solve for the minimum number of presses
     result = linprog(c=costs, A_eq=equation_matrix, b_eq=joltages, integrality=1)
+
+    # check = {}
+    # for b, n in zip(buttons, result.x) :
+    #     print(f' {int(n):3} * [ { '   '.join([ str(i) if i in b else '-' for i in range(len(joltages)) ]) } ]')
+    #     for j in b : check[j] = check.get(j, 0) + int(n)
+    # print (f'Result: { [ val for key, val in sorted(check.items()) ]}  ===  {joltages} jolts')
+    
     return int(result.fun)
 
 
