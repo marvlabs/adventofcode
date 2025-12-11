@@ -62,9 +62,7 @@ def way_out(device) :
 
 @functools.cache
 def way_out2(device, has_fft, has_dac) :
-    if device == 'out' : 
-        if has_fft and has_dac : return 1
-        return 0
+    if device == 'out' : return has_fft and has_dac 
     if device == 'fft' : has_fft = True
     if device == 'dac' : has_dac = True
     return sum( way_out2(d, has_fft, has_dac) for d in Devices[device] )    
