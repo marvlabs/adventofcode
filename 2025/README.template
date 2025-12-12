@@ -1,0 +1,20 @@
+![Advent of Code](./aoc.png)
+# Advent of Code 2025
+Progress and quick overview of completed puzzles  
+_Run `python3 2025.py readme` to refresh this file._  
+
+Run `python3 2025.py all stat` to run the puzzles and print the below statistics.
+
+## Notes
+- Animated solutions: `2025_04_anim.py`, `2025_09_anim.py`
+- Inputs in `input/<day>.txt` and stats are kept in `2025_stat.json` by the framework
+- Day 10 uses linprog from scipy.optimize
+  The animations use pygame  
+  install if necessary  
+  ```
+  python -m venv .venv   
+  source .venv/bin/activate
+  pip install -r requirements.txt
+  ```
+
+## Puzzle statistics

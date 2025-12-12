@@ -10,7 +10,7 @@ CONFIG = {
     'year'          :   '2025',
     'day'           :   '10',
     'url'           :   'https://adventofcode.com/2025/day/10',
-    'name'          :   "Day 10: Factory - random button hitting ALWAYS starts the machine",
+    'name'          :   "Day 10: Factory - random bashing ALWAYS fixes things",
     'difficulty'    :   'D3',
     'learned'       :   'LP: scipy optimize for linear programming',
     't_used'        :   '120',

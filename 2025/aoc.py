@@ -125,17 +125,24 @@ def _download_input(fname, year, day) :
     f.close()
 
 
-def print_statistics(year) :
+def statistics(year) :
     '''Output the gathered statistics of all runs'''
     _load_statistics(year)
 
     runtime = worktime = 0
-    print ("Advent of Code 2025                               Tests [run time]  Puzzle [Difficulty, work time, run time]      lessons learned")
-    print ("---------------------------------------------------------------------------------------------------------------------------------------")
+    msg =  "Advent of Code 2025                               Tests [run time]  Puzzle [Difficulty, work time, run time]      lessons learned\n"
+    msg += "---------------------------------------------------------------------------------------------------------------------------------------\n"
     for day, stat in sorted(STATISTICS.items()) :
         runtime += int(stat['runtime'])
         worktime += int(stat['t_used'])
         t = int(stat['t_used'])
-        print(f"{year}-{stat['day']} {stat['name']:55s} {stat['testtime']:7.3f}s   {stat['difficulty']}  {t//60:d}:{t%60:02d}  {stat['runtime']:7.3f}s   {stat['learned']}")
-    print ("---------------------------------------------------------------------------------------------------------------------------------------")
-    print (f"Advent of Code 2025 Total:   work {worktime//60}h{worktime%60}m,   runtime {runtime} seconds")
+        msg += f"{year}-{stat['day']} {stat['name']:55s} {stat['testtime']:7.3f}s   {stat['difficulty']}  {t//60:d}:{t%60:02d}  {stat['runtime']:7.3f}s   {stat['learned']}\n"
+    msg +=  "---------------------------------------------------------------------------------------------------------------------------------------\n"
+    msg += f"Advent of Code 2025 Total:   work {worktime//60}h{worktime%60}m,   runtime {runtime} seconds\n"
+    return msg
+
+def create_readme(year) :    
+    with open('README.md', 'w') as f:
+        with open("readme.template","r") as t:
+            print (t.read(), file=f)
+        for line in statistics(year).splitlines() : print("       " + line, file=f)

@@ -12,7 +12,11 @@ YEAR = '2025'
 for arg in sys.argv[1:] :
 
     if arg == 'stat' :
-        aoc.print_statistics(YEAR)
+        print(aoc.statistics(YEAR))
+        sys.exit(0)
+
+    if arg == 'readme' :
+        aoc.create_readme(YEAR)
         sys.exit(0)
 
     if arg == 'all' :
